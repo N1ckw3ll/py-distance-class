@@ -1,9 +1,13 @@
 from __future__ import annotations
+from functools import total_ordering
 
 
+@total_ordering
 class Distance:
     def __init__(self, km: int | float) -> None:
-        self.km = km
+        if km < 0:
+            raise ValueError("Distance cannot be negative.")
+        self.km = round(float(km), 2)
 
     def __str__(self) -> str:
         return f"Distance: {self.km} kilometers."
@@ -12,48 +16,49 @@ class Distance:
         return f"Distance(km={self.km})"
 
     def __add__(self, other: Distance | int | float) -> Distance:
-        if isinstance(other, (int, float)):
-            return Distance(round(self.km + other, 2))
-
         if isinstance(other, Distance):
-            return Distance(round(self.km + other.km, 2))
-
+            return Distance(self.km + other.km)
+        if isinstance(other, (int, float)):
+            return Distance(self.km + other)
         return NotImplemented
+
+    def __radd__(self, other: int | float) -> Distance:
+        return self.__add__(other)
 
     def __iadd__(self, other: Distance | int | float) -> Distance:
         if isinstance(other, Distance):
-            self.km += other.km
+            self.km = round(self.km + other.km, 2)
             return self
-        self.km += other
-        return self
+        if isinstance(other, (int, float)):
+            self.km = round(self.km + other, 2)
+            return self
+        return NotImplemented
 
     def __mul__(self, other: int | float) -> Distance:
-        return Distance(self.km * other)
+        if isinstance(other, (int, float)):
+            return Distance(self.km * other)
+        return NotImplemented
+
+    def __rmul__(self, other: int | float) -> Distance:
+        return self.__mul__(other)
 
     def __truediv__(self, other: int | float) -> Distance:
-        return Distance(round(self.km / other, 2))
-
-    def __lt__(self, other: Distance | int | float) -> bool:
-        if isinstance(other, Distance):
-            return self.km < other.km
-        return self.km < other
-
-    def __gt__(self, other: Distance | int | float) -> bool:
-        if isinstance(other, Distance):
-            return self.km > other.km
-        return self.km > other
+        if not isinstance(other, (int, float)):
+            return NotImplemented
+        if other == 0:
+            raise ZeroDivisionError("Cannot divide distance by zero.")
+        return Distance(self.km / other)
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Distance):
             return self.km == other.km
-        return self.km == other
+        if isinstance(other, (int, float)):
+            return self.km == other
+        return False
 
-    def __le__(self, other: Distance | int | float) -> bool:
+    def __lt__(self, other: Distance | int | float) -> bool:
         if isinstance(other, Distance):
-            return self.km <= other.km
-        return self.km <= other
-
-    def __ge__(self, other: Distance | int | float) -> bool:
-        if isinstance(other, Distance):
-            return self.km >= other.km
-        return self.km >= other
+            return self.km < other.km
+        if isinstance(other, (int, float)):
+            return self.km < other
+        return NotImplemented
