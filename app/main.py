@@ -7,13 +7,16 @@ class Distance:
     def __init__(self, km: int | float) -> None:
         if km < 0:
             raise ValueError("Distance cannot be negative.")
-        self.km = round(float(km), 2)
+        self.km = float(km)
+
+    def _format_km(self) -> int | float:
+        return int(self.km) if self.km.is_integer() else self.km
 
     def __str__(self) -> str:
-        return f"Distance: {self.km} kilometers."
+        return f"Distance: {self._format_km()} kilometers."
 
     def __repr__(self) -> str:
-        return f"Distance(km={self.km})"
+        return f"Distance(km={self._format_km()})"
 
     def __add__(self, other: Distance | int | float) -> Distance:
         if isinstance(other, Distance):
@@ -27,10 +30,10 @@ class Distance:
 
     def __iadd__(self, other: Distance | int | float) -> Distance:
         if isinstance(other, Distance):
-            self.km = round(self.km + other.km, 2)
+            self.km += other.km
             return self
         if isinstance(other, (int, float)):
-            self.km = round(self.km + other, 2)
+            self.km += other
             return self
         return NotImplemented
 
